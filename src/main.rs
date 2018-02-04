@@ -26,14 +26,14 @@ enum Syntree {
     B(u8),
     Both(Box<Syntree>, Box<Syntree>),
     List(LinkedList<Syntree>),
-    N(u32),
+    N(i32),
     C(Operator, Box<Syntree>, Box<Syntree>)
 }
 
 #[derive(PartialEq, Debug)]
 enum Result {
     NoValue,
-    Value(u32)
+    Value(i32)
 }
 
 
@@ -118,62 +118,62 @@ fn scan_repeat<F>(scan: F, i: usize, input: &[u8])
 
 
 fn scan_0(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '0' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'0'}, i, input)
 }
 fn scan_1(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '1' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'1'}, i, input)
 }
 fn scan_2(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '2' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'2'}, i, input)
 }
 fn scan_3(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '3' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'3'}, i, input)
 }
 fn scan_4(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '4' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'4'}, i, input)
 }
 fn scan_5(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '5' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'5'}, i, input)
 }
 fn scan_6(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '6' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'6'}, i, input)
 }
 fn scan_7(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '7' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'7'}, i, input)
 }
 fn scan_8(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '8' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'8'}, i, input)
 }
 fn scan_9(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '9' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'9'}, i, input)
 }
 
 fn scan_lparen(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '(' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'('}, i, input)
 }
 
 fn scan_rparen(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == ')' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b')'}, i, input)
 }
 
 fn scan_plus(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '+' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'+'}, i, input)
 }
 fn scan_hyphen(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '-' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'-'}, i, input)
 }
 fn scan_aster(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '*' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'*'}, i, input)
 }
 fn scan_slash(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '/' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'/'}, i, input)
 }
 fn scan_perc(i: usize, input: &[u8]) -> Parsed<Syntree>{
-    scan_byte (|b: u8| -> bool {b == '%' as u8}, i, input)
+    scan_byte (|b: u8| -> bool {b == b'%'}, i, input)
 }
-//fn scan_lf(i: usize, input: &[u8]) -> Parsed<Syntree> {
-//    scan_byte (|b: u8| -> bool {b == '\n' as u8}, i, input)
-//}
+fn _scan_lf(i: usize, input: &[u8]) -> Parsed<Syntree> {
+    scan_byte (|b: u8| -> bool {b == b'\n'}, i, input)
+}
 
 fn scan_123456789(i: usize, input: &[u8]) -> Parsed<Syntree> {
     if let Some((r, i)) = scan_either(scan_1, scan_2, i, &input) {
@@ -206,20 +206,13 @@ fn build_num(head: u8, tail: &mut LinkedList<Syntree>) -> Syntree {
     let mut m = 1;
     let base = 10;
 
-
-    loop {
-        match tail.pop_back() {
-            Some(B(b)) => {
-                n += m * (b - '0' as u8);
-                m *= base;
-            }
-            Some(_) => panic!("error: build_num"),
-            None => break
-        }
+    while let Some(B(b)) = tail.pop_back() {
+            n += m * (b - b'0') as i32;
+            m *= base;
     }
 
-    n += m * (head - '0' as u8);
-    N(n as u32)
+    n += m * (head - b'0') as i32;
+    N(n)
 }
 
 //   num   = [1-9][0-9]*,
@@ -231,7 +224,7 @@ fn scan_num(i: usize, input: &[u8]) -> Parsed<Syntree>{
                     Some((build_num(e, &mut li), i2))
                 }
                 Some((Empty, i2)) => {
-                    Some((N((e - '0' as u8) as u32), i2))
+                    Some((N((e - b'0') as i32), i2))
                 }
                 _ => None
             }
@@ -245,12 +238,12 @@ fn scan_num(i: usize, input: &[u8]) -> Parsed<Syntree>{
 fn to_op(leaf: Syntree) -> Operator {
     match leaf {
         B(b) => {
-            match b as u8 {
-                43 => Operator::Add,  // '+' as u8
-                45 => Operator::Sub,  // '-' as u8
-                42 => Operator::Prod, // '*' as u8
-                47 => Operator::Div,  // '/' as u8
-                37 => Operator::Mod,  // '%' as u8
+            match b {
+                43 => Operator::Add,  // '+'
+                45 => Operator::Sub,  // '-'
+                42 => Operator::Prod, // '*'
+                47 => Operator::Div,  // '/'
+                37 => Operator::Mod,  // '%'
                 _ => panic!("error: to_op")
             }
         }
@@ -423,7 +416,6 @@ fn main() {
 #[test]
 fn test_scan_empty(){
     let v1 = vec![1];
-    let v2 = vec![1];
 
     assert_eq!(scan_empty(0, &v1), Some((Empty, 0)));
 }
@@ -432,7 +424,7 @@ fn test_scan_empty(){
 fn test_scan_byte(){
     let v1 = vec![1];
 
-    let f = |b : u8| -> bool {false};
+    let f = |_b : u8| -> bool {false};
     assert_eq!(scan_byte(&f, 0, &v1), None);
 
     let v2 = vec![1,2];
@@ -440,77 +432,77 @@ fn test_scan_byte(){
     assert_eq!(scan_byte(&g, 0, &v2), Some((B(1), 1)));
 }
 
-//#[test]
-//fn test_scan_either(){
-//    let v1 = vec!['1' as u8];
-//    let v2 = vec!['2' as u8];
-//    let v3 = vec!['3' as u8];
-//
-//    let f = scan_1;
-//    let g = scan_2;
-//
-//    assert_eq!(scan_either(f, g, 0, &v1), Some(('1' as u8, 1)));
-//    assert_eq!(scan_either(f, g, 0, &v2), Some(('2' as u8, 1)));
-//    assert_eq!(scan_either(f, g, 0, &v3), None              );
-//    
-//}
-//
+#[test]
+fn test_scan_either(){
+    let v1 = vec![b'1'];
+    let v2 = vec![b'2'];
+    let v3 = vec![b'3'];
+
+    let f = scan_1;
+    let g = scan_2;
+
+    assert_eq!(scan_either(f, g, 0, &v1), Some((B(b'1'), 1)));
+    assert_eq!(scan_either(f, g, 0, &v2), Some((B(b'2'), 1)));
+    assert_eq!(scan_either(f, g, 0, &v3), None              );
+    
+}
+
 
 #[test]
 fn test_scan_repeat(){
-    let v1 = vec!['1' as u8, '2' as u8, '3' as u8];
-    let v2 = vec!['a' as u8];
-    let v3 = vec!['3' as u8, 'a' as u8];
+    let v1 = vec![b'1', b'2', b'3'];
+    let v2 = vec![b'a'];
+    let v3 = vec![b'3', b'a'];
     let v4 = vec![];
 
     let f = scan_123456789;
 
     let mut a1 = LinkedList::new();
-    a1.push_front(B('3' as u8));
-    a1.push_front(B('2' as u8));
-    a1.push_front(B('1' as u8));
+    a1.push_front(B(b'3'));
+    a1.push_front(B(b'2'));
+    a1.push_front(B(b'1'));
     let mut a2 = LinkedList::new();
-    a2.push_front(B('3' as u8));
+    a2.push_front(B(b'3'));
 
     assert_eq!(scan_repeat(f, 0, &v1), Some((List(a1), 3)));
     assert_eq!(scan_repeat(f, 0, &v2), Some((Empty, 0)));
     assert_eq!(scan_repeat(f, 0, &v3), Some((List(a2), 1)));
     assert_eq!(scan_repeat(f, 0, &v4), Some((Empty, 0)));
 }
-//
-//#[test]
-//fn test_scan_1(){
-//    let v = vec!['1' as u8 ,2,3];
-//    assert_eq!(scan_1(0, &v), Some(('1' as u8, 1)));
-//}
-//
-//#[test]
-//fn test_scan_0123456789(){
-//    let v = vec!['0' as u8, '1' as u8, '2' as u8, '3' as u8,
-//                 '4' as u8, '5' as u8, '6' as u8, '7' as u8,
-//                 '8' as u8, '9' as u8, 'a' as u8];
-//
-//    assert_eq!(scan_0123456789(0, &v), Some(('0' as u8, 1)));
-//    assert_eq!(scan_0123456789(1, &v), Some(('1' as u8, 2)));
-//    assert_eq!(scan_0123456789(2, &v), Some(('2' as u8, 3)));
-//    assert_eq!(scan_0123456789(3, &v), Some(('3' as u8, 4)));
-//    assert_eq!(scan_0123456789(4, &v), Some(('4' as u8, 5)));
-//    assert_eq!(scan_0123456789(5, &v), Some(('5' as u8, 6)));
-//    assert_eq!(scan_0123456789(6, &v), Some(('6' as u8, 7)));
-//    assert_eq!(scan_0123456789(7, &v), Some(('7' as u8, 8)));
-//    assert_eq!(scan_0123456789(8, &v), Some(('8' as u8, 9)));
-//    assert_eq!(scan_0123456789(9, &v), Some(('9' as u8, 10)));
-//    assert_eq!(scan_0123456789(10, &v),None); 
-//}
+
+#[test]
+fn test_scan_1(){
+    let v = vec![b'1', b'2', b'3'];
+    assert_eq!(scan_1(0, &v), Some((B(b'1'), 1)));
+}
+
+#[test]
+fn test_scan_0123456789(){
+    let v = vec![b'0', b'1', b'2', b'3',
+                 b'4', b'5', b'6', b'7',
+                 b'8', b'9', b'a'];
+
+    assert_eq!(scan_0123456789(0, &v), Some((B(b'0'), 1)));
+    assert_eq!(scan_0123456789(1, &v), Some((B(b'1'), 2)));
+    assert_eq!(scan_0123456789(2, &v), Some((B(b'2'), 3)));
+    assert_eq!(scan_0123456789(3, &v), Some((B(b'3'), 4)));
+    assert_eq!(scan_0123456789(4, &v), Some((B(b'4'), 5)));
+    assert_eq!(scan_0123456789(5, &v), Some((B(b'5'), 6)));
+    assert_eq!(scan_0123456789(6, &v), Some((B(b'6'), 7)));
+    assert_eq!(scan_0123456789(7, &v), Some((B(b'7'), 8)));
+    assert_eq!(scan_0123456789(8, &v), Some((B(b'8'), 9)));
+    assert_eq!(scan_0123456789(9, &v), Some((B(b'9'), 10)));
+    assert_eq!(scan_0123456789(10, &v),None); 
+}
 
 #[test]
 fn test_scan_num(){
-    let v1 = vec!['0' as u8];
+    let v1 = vec![b'0'];
     let v2 = vec![];
-    let v3 = vec!['1' as u8, '2' as u8, '3' as u8];
-    let v4 = vec!['0' as u8, '2' as u8, '3' as u8];
-    let v5 = vec!['0' as u8, '2' as u8, '3' as u8];
-    let v6 = vec!['1' as u8, 'a' as u8, '3' as u8];
+    let v3 = vec![b'1', b'2', b'3'];
+    let v4 = vec![b'0', b'2', b'3'];
+    let v5 = vec![b'0', b'2', b'3'];
+    let v6 = vec![b'1', b'a', b'3'];
 
 
     assert_eq!(scan_num(0, &v1), None);
@@ -524,11 +516,11 @@ fn test_scan_num(){
 
 #[test]
 fn test_to_op(){
-    let a1 = B('+' as u8);
-    let a2 = B('-' as u8);
-    let a3 = B('*' as u8);
-    let a4 = B('/' as u8);
-    let a5 = B('%' as u8);
+    let a1 = B(b'+');
+    let a2 = B(b'-');
+    let a3 = B(b'*');
+    let a4 = B(b'/');
+    let a5 = B(b'%');
 
     
     assert_eq!(to_op(a1), Operator::Add);
@@ -547,13 +539,13 @@ fn test_to_tree(){
     //l1.push_back(t1);
 
     let h2 = N(1);
-    let t2 = Both(Box::new(B('+' as u8)), Box::new(N(1)));
+    let t2 = Both(Box::new(B(b'+')), Box::new(N(1)));
     let mut l2 = LinkedList::new();
     l2.push_back(t2);
     
     let h3 = N(1);
-    let t31 = Both(Box::new(B('+' as u8)), Box::new(N(1)));
-    let t32 = Both(Box::new(B('+' as u8)), Box::new(N(1)));
+    let t31 = Both(Box::new(B(b'+')), Box::new(N(1)));
+    let t32 = Both(Box::new(B(b'+')), Box::new(N(1)));
     let mut l3 = LinkedList::new();
     l3.push_back(t31);
     l3.push_back(t32);
